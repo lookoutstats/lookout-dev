@@ -24,13 +24,13 @@ jobs:
       - name: Tag matches the extension's version
         run: test "vscode-v$(node -p "require('./packages/vscode/package.json').version")" = "$GITHUB_REF_NAME"
       - run: npm run check
-      - run: npx --yes @vscode/vsce@4.1.1 package --no-dependencies -o lookout.vsix
+      - run: npx --yes @vscode/vsce@4.1.1 package --no-dependencies -o lookout-vercel-analytics.vsix
         working-directory: packages/vscode
-      - run: npx --yes @vscode/vsce@4.1.1 publish --packagePath lookout.vsix
+      - run: npx --yes @vscode/vsce@4.1.1 publish --packagePath lookout-vercel-analytics.vsix
         working-directory: packages/vscode
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-      - run: npx --yes ovsx@1.4.0 publish lookout.vsix
+      - run: npx --yes ovsx@1.4.0 publish lookout-vercel-analytics.vsix
         working-directory: packages/vscode
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}

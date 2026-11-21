@@ -1,5 +1,5 @@
 {
-  "name": "lookout",
+  "name": "lookout-vercel-analytics",
   "displayName": "Lookout for Vercel Analytics",
   "description": "Vercel Web Analytics and Speed Insights for the project you have open: visitors, speed grade, top pages, and a hint above each Next.js page. Read-only.",
   "version": "0.1.0",
