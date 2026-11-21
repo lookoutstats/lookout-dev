@@ -35,6 +35,10 @@ The speed grade comes from real visits to what is already live. A build step can
 
 A site without speed data (Speed Insights off, or under 50 page loads) is skipped. Add `--require-data` to fail it.
 
+## In your editor
+
+The same numbers in VS Code: [Lookout for Vercel Analytics](https://marketplace.visualstudio.com/items?itemName=lookoutstats.lookout-vercel-analytics) on the Visual Studio Marketplace.
+
 ## Licence
 
 MIT. Lookout is not affiliated with Vercel Inc.
