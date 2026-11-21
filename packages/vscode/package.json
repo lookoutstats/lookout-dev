@@ -1,0 +1,133 @@
+{
+  "name": "lookout",
+  "displayName": "Lookout for Vercel Analytics",
+  "description": "Vercel Web Analytics and Speed Insights for the project you have open: visitors, speed grade, top pages, and a hint above each Next.js page. Read-only.",
+  "version": "0.1.0",
+  "publisher": "lookoutstats",
+  "private": true,
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "homepage": "https://lookoutstats.com/developers/editor-and-cli",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lookoutstats/lookout-dev.git",
+    "directory": "packages/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/lookoutstats/lookout-dev/issues"
+  },
+  "keywords": [
+    "vercel",
+    "analytics",
+    "web analytics",
+    "speed insights",
+    "core web vitals",
+    "next.js"
+  ],
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "lookout",
+          "title": "Lookout",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "lookout": [
+        {
+          "type": "webview",
+          "id": "lookout.panel",
+          "name": "Lookout"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "lookout.signIn",
+        "title": "Sign in",
+        "category": "Lookout"
+      },
+      {
+        "command": "lookout.signOut",
+        "title": "Sign out",
+        "category": "Lookout"
+      },
+      {
+        "command": "lookout.refresh",
+        "title": "Refresh",
+        "category": "Lookout",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "lookout.pickSite",
+        "title": "Pick the site for this folder",
+        "category": "Lookout"
+      },
+      {
+        "command": "lookout.openInLookout",
+        "title": "Open the site in Lookout",
+        "category": "Lookout"
+      },
+      {
+        "command": "lookout.togglePanel",
+        "title": "Show or hide the panel",
+        "category": "Lookout"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "lookout.refresh",
+          "when": "view == lookout.panel",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Lookout",
+      "properties": {
+        "lookout.range": {
+          "type": "string",
+          "enum": [
+            "24h",
+            "7d",
+            "30d"
+          ],
+          "default": "7d",
+          "description": "The period the numbers cover."
+        },
+        "lookout.codeHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a one-line hint with the page's visitors and speed above each Next.js page."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "package": "npx --yes @vscode/vsce@4.1.1 package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/vscode": "1.90.0"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": false
+  }
+}

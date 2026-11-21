@@ -1,0 +1,17 @@
+{
+  "name": "lookoutstats",
+  "version": "0.1.0",
+  "description": "Lookout for the terminal: Vercel Web Analytics and Speed Insights for the project in this folder, read-only. npx lookoutstats",
+  "keywords": ["vercel", "vercel-analytics", "web-analytics", "speed-insights", "core-web-vitals", "cli", "lookout"],
+  "homepage": "https://lookoutstats.com/developers/editor-and-cli",
+  "repository": { "type": "git", "url": "git+https://github.com/lookoutstats/lookout-dev.git", "directory": "packages/cli" },
+  "bugs": { "url": "https://github.com/lookoutstats/lookout-dev/issues" },
+  "license": "MIT",
+  "author": "Lookout <hello@lookoutstats.com> (https://lookoutstats.com)",
+  "type": "module",
+  "bin": { "lookoutstats": "dist/cli.js", "lookout": "dist/cli.js" },
+  "files": ["dist", "README.md", "LICENSE"],
+  "engines": { "node": ">=20" },
+  "scripts": { "build": "tsup" },
+  "publishConfig": { "access": "public" }
+}

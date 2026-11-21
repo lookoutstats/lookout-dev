@@ -1,0 +1,21 @@
+{
+  "name": "lookout-dev",
+  "private": true,
+  "type": "module",
+  "description": "Lookout's developer tools: the command line (npx lookoutstats) and the VS Code / Cursor extension.",
+  "license": "MIT",
+  "workspaces": ["packages/core", "packages/cli", "packages/vscode"],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "tsc --noEmit -p packages/core && tsc --noEmit -p packages/cli && tsc --noEmit -p packages/vscode",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.1",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3"
+  },
+  "engines": { "node": ">=20" }
+}
