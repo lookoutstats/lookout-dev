@@ -1,0 +1,32 @@
+name: Publish lookoutstats (npm)
+
+# Push a tag like cli-v0.1.1 (matching packages/cli/package.json) to stage it on npm. npm Trusted Publishing (OIDC): no
+# npm token is stored here, and provenance is added. The version is staged, not public: a maintainer approves it on
+# npmjs.com or with `npm stage approve <id>` (2FA). The first version (0.1.0) is published by hand; Trusted Publishing
+# is then set up on npmjs.com for this repository and workflow.
+on:
+  push:
+    tags: ["cli-v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@12.0.2
+      - run: npm ci
+      - name: Tag matches the package's version
+        run: test "cli-v$(node -p "require('./packages/cli/package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm run check
+      - run: npm stage publish --access public --ignore-scripts
+        working-directory: packages/cli

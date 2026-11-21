@@ -1,0 +1,36 @@
+name: Publish the extension (VS Code Marketplace, Open VSX)
+
+# Push a tag like vscode-v0.1.1 (matching packages/vscode/package.json). Needs two repository secrets on the `extensions`
+# environment (with required reviewers): VSCE_PAT (an Azure DevOps token with Marketplace › Manage for the publisher
+# lookoutstats) and OVSX_PAT (an Open VSX token for the namespace lookoutstats). Cursor installs from Open VSX.
+on:
+  push:
+    tags: ["vscode-v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: extensions
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Tag matches the extension's version
+        run: test "vscode-v$(node -p "require('./packages/vscode/package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm run check
+      - run: npx --yes @vscode/vsce@4.1.1 package --no-dependencies -o lookout.vsix
+        working-directory: packages/vscode
+      - run: npx --yes @vscode/vsce@4.1.1 publish --packagePath lookout.vsix
+        working-directory: packages/vscode
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - run: npx --yes ovsx@0.10.6 publish lookout.vsix
+        working-directory: packages/vscode
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
