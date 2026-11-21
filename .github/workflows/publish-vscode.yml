@@ -30,7 +30,7 @@ jobs:
         working-directory: packages/vscode
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-      - run: npx --yes ovsx@0.10.6 publish lookout.vsix
+      - run: npx --yes ovsx@1.4.0 publish lookout.vsix
         working-directory: packages/vscode
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
