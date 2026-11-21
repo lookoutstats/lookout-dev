@@ -75,3 +75,27 @@ describe("formatting", () => {
     expect([deviceName("Studio-MBP-3.lan"), deviceName("ci-runner"), deviceName("")]).toEqual(["Studio-MBP-3", "ci-runner", "computer"]);
   });
 });
+
+describe("security (review 2026-11-21)", () => {
+  it("a saved key only goes to api.lookoutstats.com; an environment key may go to an https address", async () => {
+    const { keyAndUrl } = await import("@lookout-dev/core");
+    expect(keyAndUrl({ LOOKOUT_API_URL: "https://evil.example" }, "lk_saved")).toEqual({ key: "lk_saved", apiUrl: "https://api.lookoutstats.com" });
+    expect(keyAndUrl({ LOOKOUT_API_KEY: "lk_env", LOOKOUT_API_URL: "https://staging.example" }, "lk_saved")).toEqual({ key: "lk_env", apiUrl: "https://staging.example" });
+    expect(keyAndUrl({ LOOKOUT_API_KEY: "lk_env", LOOKOUT_API_URL: "http://evil.example" }, undefined)).toEqual({ key: "lk_env", apiUrl: "https://api.lookoutstats.com" });
+    expect(keyAndUrl({ LOOKOUT_API_KEY: "lk_env", LOOKOUT_API_URL: "http://127.0.0.1:8098" }, undefined)?.apiUrl).toBe("http://127.0.0.1:8098");
+    expect(keyAndUrl({}, undefined)).toBeNull();
+  });
+
+  it("sign-in opens only Lookout's own approval page", async () => {
+    const { startSignIn } = await import("@lookout-dev/core");
+    const answer = (verificationUrl: string) => (async () => new Response(JSON.stringify({ deviceCode: "d".repeat(40), userCode: "BCDF-GHJK", verificationUrl, expiresIn: 600, interval: 3 }), { status: 200 })) as unknown as typeof fetch;
+    await expect(startSignIn("cli", "dev", { fetch: answer("https://lookoutstats.com/device?code=BCDF-GHJK") })).resolves.toMatchObject({ userCode: "BCDF-GHJK" });
+    await expect(startSignIn("cli", "dev", { fetch: answer("https://evil.example/device?code=BCDF-GHJK") })).rejects.toThrow("unexpected sign-in page");
+    await expect(startSignIn("cli", "dev", { fetch: answer("https://lookoutstats.com/device?code=BCDF-GHJK&x=|calc") })).rejects.toThrow();
+  });
+
+  it("strips control characters from server text, deeply", async () => {
+    const { cleanText } = await import("@lookout-dev/core");
+    expect(cleanText({ a: "fix\u001b[2J/hero", b: ["ok\u0007"], n: 3 })).toEqual({ a: "fix[2J/hero", b: ["ok"], n: 3 });
+  });
+});

@@ -1,4 +1,7 @@
-import { API_URL } from "./api.js";
+import { API_URL, cleanText } from "./api.js";
+
+/** The only page a sign-in opens (security review 2026-11-21): a hostile API can't make the tool open anything else. */
+export const DEVICE_URL = /^https:\/\/lookoutstats\.com\/device\?code=[BCDFGHJKLMNPQRSTVWXZ]{4}-[BCDFGHJKLMNPQRSTVWXZ]{4}$/;
 
 // Browser sign-in (Lookout's device flow): ask for a code, open lookoutstats.com/device, and wait while the owner
 // approves it there. The answer is a read-only API key named after this computer.
@@ -35,7 +38,9 @@ export const deviceName = (host: string) => host.split(".")[0]!.slice(0, 40) || 
 export async function startSignIn(client: DeviceClient, device: string, deps: SignInDeps = {}): Promise<DeviceCode> {
   const res = await post(deps, "/v1/device/code", { client, device: deviceName(device) });
   if (!res.ok) throw new SignInError("refused", `Lookout refused the sign-in (${res.status}). Try again in a minute.`);
-  return (await res.json()) as DeviceCode;
+  const code = (await res.json()) as DeviceCode;
+  if (!DEVICE_URL.test(code.verificationUrl)) throw new SignInError("refused", "Lookout answered with an unexpected sign-in page. Try again.");
+  return code;
 }
 
 /** Waits for the approval; the key, or a SignInError (denied, expired). */
@@ -51,7 +56,7 @@ export async function waitForApproval(code: DeviceCode, deps: SignInDeps = {}): 
     if (res.status === 429) continue;
     if (!res.ok) throw new SignInError("refused", `Lookout answered ${res.status}. Try again.`);
     const body = (await res.json()) as { status: "pending" } | ({ status: "approved" } & SignedIn);
-    if (body.status === "approved") return { key: body.key, email: body.email ?? null, workspace: body.workspace ?? null };
+    if (body.status === "approved") return cleanText({ key: body.key, email: body.email ?? null, workspace: body.workspace ?? null });
   }
   throw new SignInError("expired", "The sign-in expired. Run it again.");
 }

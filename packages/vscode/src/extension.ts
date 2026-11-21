@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { hostname } from "node:os";
 import * as vscode from "vscode";
 import {
-  ApiError, createClient, figuresFor, findLink, matchesRoute, routeOfFile, siteUrl, startSignIn, waitForApproval,
+  ApiError, createClient, figuresFor, findLink, keyAndUrl, matchesRoute, routeOfFile, siteUrl, startSignIn, waitForApproval,
   type Client, type FolderLink, type Range, type SitePages,
 } from "@lookout-dev/core";
 import { hintLine, hintText, panelHtml, statusText, type PanelState } from "./view.js";
@@ -79,9 +79,10 @@ class Lookout implements vscode.WebviewViewProvider, vscode.CodeLensProvider, vs
   }
 
   private async client(): Promise<Client | null> {
-    // The editor's secret storage; LOOKOUT_API_KEY in the editor's environment otherwise (remote machines, the command line's parity).
-    const key = (await this.context.secrets.get(KEY_SECRET)) ?? process.env.LOOKOUT_API_KEY;
-    return key ? createClient({ key, apiUrl: process.env.LOOKOUT_API_URL, userAgent: `lookout-vscode/${this.context.extension.packageJSON.version}` }) : null;
+    // LOOKOUT_API_KEY in the editor's environment (remote machines, as the command line), else the secret storage's key,
+    // which only ever goes to api.lookoutstats.com (keyAndUrl: a dev container's settings can't redirect it).
+    const use = keyAndUrl(process.env, await this.context.secrets.get(KEY_SECRET));
+    return use ? createClient({ ...use, userAgent: `lookout-vscode/${this.context.extension.packageJSON.version}` }) : null;
   }
 
   private show(state: PanelState): void {

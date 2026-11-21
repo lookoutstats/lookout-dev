@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import {
-  ApiError, bars, below, change, checksOf, compact, configPath, createClient, findLink, int, isGrade, readConfig, siteUrl, startSignIn, verdict, vitalsLine, waitForApproval, writeConfig,
+  ApiError, bars, below, change, checksOf, compact, configPath, createClient, findLink, int, isGrade, keyAndUrl, readConfig, safeApiUrl, siteUrl, startSignIn, verdict, vitalsLine, waitForApproval, writeConfig,
   type Client, type Grade, type Range, type SignInDeps, type WorkspaceSite,
 } from "@lookout-dev/core";
 
@@ -68,7 +68,8 @@ export async function run(argv: string[], io: Env): Promise<number> {
   if (o.help) return (io.out(HELP), EXIT.ok);
   const range = (o.range ?? "7d") as Range;
   if (!["24h", "7d", "30d"].includes(range)) return (io.err("--range is 24h, 7d or 30d."), EXIT.failed);
-  const apiUrl = io.env.LOOKOUT_API_URL;
+  // Sign-in sends no key, so a test address is fine for it; reads use keyAndUrl (a saved key goes to Lookout only).
+  const apiUrl = safeApiUrl(io.env.LOOKOUT_API_URL) ?? undefined;
 
   try {
     switch (command) {
@@ -112,9 +113,9 @@ export async function run(argv: string[], io: Env): Promise<number> {
   }
 
   async function client(): Promise<Client> {
-    const key = io.env.LOOKOUT_API_KEY || (await readConfig(io.home)).key;
-    if (!key) throw new Stop("Not signed in. Run npx lookoutstats login (or set LOOKOUT_API_KEY in CI).");
-    return createClient({ key, apiUrl, fetch: io.fetch, userAgent: "lookoutstats-cli" });
+    const use = keyAndUrl(io.env, (await readConfig(io.home)).key);
+    if (!use) throw new Stop("Not signed in. Run npx lookoutstats login (or set LOOKOUT_API_KEY in CI).");
+    return createClient({ ...use, fetch: io.fetch, userAgent: "lookoutstats-cli" });
   }
 
   /** The site to show: --site, LOOKOUT_SITE, or the folder's Vercel link. */

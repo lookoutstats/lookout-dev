@@ -20,7 +20,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      # No package install scripts while the job holds publishing credentials (security review 2026-11-21).
+      - run: npm ci --ignore-scripts
       - name: Tag matches the extension's version
         run: test "vscode-v$(node -p "require('./packages/vscode/package.json').version")" = "$GITHUB_REF_NAME"
       - run: npm run check

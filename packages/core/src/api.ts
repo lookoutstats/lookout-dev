@@ -38,6 +38,36 @@ export interface SitePages { site: { id: string; name: string; domain: string };
 export interface BoardSites { board: { id: string; name: string }; range: string; sites: { id: string; domain: string }[]; unavailable: string[] }
 export type Range = "24h" | "7d" | "30d";
 
+/** An https address, or http on this computer (a local stand-in for tests); null otherwise. */
+export function safeApiUrl(url: string | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.protocol === "https:" || (u.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(u.hostname))) return u.origin;
+  } catch {
+    // not a URL
+  }
+  return null;
+}
+
+/**
+ * Which key to use and where to send it (security review 2026-11-21). A key from the environment (LOOKOUT_API_KEY) may
+ * go to LOOKOUT_API_URL; a saved key (~/.lookout, the editor's secret storage) only ever goes to api.lookoutstats.com,
+ * so a repository's settings (a dev container's environment) can't redirect it.
+ */
+export function keyAndUrl(env: Record<string, string | undefined>, savedKey: string | undefined): { key: string; apiUrl: string } | null {
+  if (env.LOOKOUT_API_KEY) return { key: env.LOOKOUT_API_KEY, apiUrl: safeApiUrl(env.LOOKOUT_API_URL) ?? API_URL };
+  return savedKey ? { key: savedKey, apiUrl: API_URL } : null;
+}
+
+/** Text from the server without control characters, so it can't move a terminal's cursor or recolor it. */
+export function cleanText<T>(v: T): T {
+  if (typeof v === "string") return v.replace(/[\u0000-\u001f\u007f-\u009f]/g, "") as T;
+  if (Array.isArray(v)) return v.map(cleanText) as T;
+  if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, cleanText(x)])) as T;
+  return v;
+}
+
 /** An error answer: its HTTP status and Lookout's error code. */
 export class ApiError extends Error {
   constructor(readonly status: number, readonly code: string, message: string) {
@@ -65,7 +95,7 @@ export function createClient({ key, apiUrl = API_URL, fetch: f = fetch, userAgen
       const body = (await res.json().catch(() => null)) as { error?: { code?: string; message?: string } } | null;
       throw new ApiError(res.status, body?.error?.code ?? `http_${res.status}`, body?.error?.message ?? `Lookout answered ${res.status}`);
     }
-    return (await res.json()) as T;
+    return cleanText((await res.json()) as T);
   }
   const q = (range: Range) => `range=${range}`;
   const id = encodeURIComponent;

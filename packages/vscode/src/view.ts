@@ -72,12 +72,12 @@ export function panelBody(state: PanelState): string {
       const why = verdict(v.speed);
       const up = v.change == null ? "muted" : v.change < 0 ? "down" : "up";
       const grade = v.speed.grade
-        ? `<div class="grade"><span class="letter" data-grade="${v.speed.grade}">${v.speed.grade}</span><span class="gtext"><span>${esc(why ?? "")}</span><span class="mono">${esc(vitalsLine(v.speed))}</span></span></div>`
+        ? `<div class="grade"><span class="letter" data-grade="${esc(v.speed.grade)}">${v.speed.grade}</span><span class="gtext"><span>${esc(why ?? "")}</span><span class="mono">${esc(vitalsLine(v.speed))}</span></span></div>`
         : `<div class="grade"><span class="letter" data-grade="none">–</span><span class="gtext"><span>No speed grade</span><span class="mono">${v.speed.status === "off" ? "Speed Insights is off, or needs Plus" : "Too few visits to grade"}</span></span></div>`;
       const pages = v.pages.slice(0, 3).map((p) => `<button class="page" data-msg="openPage" data-path="${esc(p.name)}"><span>${esc(p.name)}</span><span class="muted">${compact(p.visitors)}</span></button>`).join("");
       const last = v.deployments?.[0];
       return `<div class="state">
-<div class="stack"><span class="site">${esc(v.site.domain)}</span><span class="small">${state.linkedBy === "link" ? "Linked to this folder" : "Picked for this folder"} · ${RANGE[v.range] ?? v.range}</span></div>
+<div class="stack"><span class="site">${esc(v.site.domain)}</span><span class="small">${state.linkedBy === "link" ? "Linked to this folder" : "Picked for this folder"} · ${RANGE[v.range] ?? esc(v.range)}</span></div>
 <div class="visitors"><div class="stack"><span class="small">Visitors</span><span class="big">${compact(v.visitors)}</span><span class="delta ${up}">${change(v.change)} ${COMPARE[v.range] ?? ""}</span></div>${spark(v.points.map((p) => p.visitors))}</div>
 ${grade}
 ${pages ? `<div class="pages"><span class="small">Top pages · click to open the file</span>${pages}</div>` : ""}

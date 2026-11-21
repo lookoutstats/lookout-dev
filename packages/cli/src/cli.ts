@@ -5,7 +5,8 @@ import { run } from "./run.js";
 
 /** Opens a URL with the system's browser; false when there is none (a server, CI). */
 function openBrowser(url: string): Promise<boolean> {
-  const [cmd, args] = process.platform === "darwin" ? ["open", [url]] : process.platform === "win32" ? ["cmd", ["/c", "start", "", url]] : ["xdg-open", [url]];
+  // Windows: rundll32, not cmd.exe, which would read & and | in the address as commands (security review 2026-11-21).
+  const [cmd, args] = process.platform === "darwin" ? ["open", [url]] : process.platform === "win32" ? ["rundll32", ["url.dll,FileProtocolHandler", url]] : ["xdg-open", [url]];
   return new Promise((resolve) => {
     try {
       const child = spawn(cmd, args as string[], { stdio: "ignore", detached: true });

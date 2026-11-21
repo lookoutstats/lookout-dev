@@ -24,7 +24,8 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
       - run: npm install -g npm@12.0.2
-      - run: npm ci
+      # No package install scripts while the job holds publishing credentials (security review 2026-11-21).
+      - run: npm ci --ignore-scripts
       - name: Tag matches the package's version
         run: test "cli-v$(node -p "require('./packages/cli/package.json').version")" = "$GITHUB_REF_NAME"
       - run: npm run check
